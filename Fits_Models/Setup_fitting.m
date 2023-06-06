@@ -1,11 +1,12 @@
 mydir  = pwd;
 idcs   = strfind(mydir,filesep);
 newdir = mydir(1:idcs(end)-1); 
-load(strcat(newdir,'/TestFits/RatModel/RatEpi4.mat'))
-Folderdir = strcat(newdir,'/TestFits/RatModel/');
-FileName = 'RatEpi4_res_%d';
-
+load(strcat(newdir,'/Inputs/FivePrm18_20.mat')) % Load an input file
+Folderdir = strcat(newdir,'/Results/'); % Save location
+FileName = 'FivePrm18_20_%d'; % Save name
+K = 10;
+NoPart = 100;
 sv_file = strcat(Folderdir,FileName);
 
-[All_gen_results_cell,Total_iterations,tolVec,seed] = Algorithm_Modelselection_AQ_SMC_P...
-    (Models,Prior_models,Priors_given_m,Inputs,data,K,Quantile,T,error_method,NoPart,MaxIter,PKernel,sv_file);
+[All_gen_results_cell,Total_iterations,tolVec,seed] = Algorithm_AQ_SMC_P_epi...
+    (K,Quantile,T,MaxIter,NoPart,model,Input,Priors_given_m,data,error_method,PKernel,sv_file);

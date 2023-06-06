@@ -1,4 +1,4 @@
-function  Output_T = Model_SEAIR_vSIR_Cfreq_Bpg_f(input)
+function  Output_T = Model_SEAIR_vSIR(input)
 
 if nargin == 0
 % parameters
@@ -78,14 +78,10 @@ if S_r_0+I_r_0>N_r_0
     warning('Initial level of susceptibles+exposed+infecteds (%g+%g+%g=%g) is greater than total population',S_r_0,I_r_0,N_r_0);
 end
 
-
-S_r=S_r_0; I_r=I_r_0; R_r=N_r_0-S_r-I_r;
-S_h = S_h_0; E_h = E_h_0; A_h = A_h_0; I_h=I_h_0; R_h=N_h_0-S_h-E_h-A_h-I_h;
-C_h = C_h_0; D_h = D_h_0;
 % The main iteration 
 options = odeset('AbsTol', 1e-5);
 input_vec = [k s phi beta_rr gamma_r mu_r B_h beta_hh sigma beta_rh p nu gamma_h mu_h_I mu_h];
-[t, pop]=ode45(@Diff_2_2,0:MaxTime,[S_r I_r R_r S_h E_h A_h I_h R_h C_h D_h],options,input_vec);
+[t, pop]=ode45(@Diff_2_2,0:MaxTime,[S_r_0 I_r_0 R_r_0 S_h_0 E_h_0 A_h_0 I_h_0 R_h_0 C_h_0 D_h_0],options,input_vec);
 
 
 

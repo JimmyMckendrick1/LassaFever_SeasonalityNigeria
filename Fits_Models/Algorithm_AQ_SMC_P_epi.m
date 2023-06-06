@@ -1,8 +1,8 @@
 function [All_gen_results_cell,Total_iterations,tolVec,seed] = Algorithm_AQ_SMC_P_epi...
     (K,Quantile,T,MaxIter,M,model,Input,Priors_given_m,data,error_method,PKernel,save_name)
-%%%%%%%%%%%%%%%%%%%%%%%%JimmyMcKendrick%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Approximate Bayesian Computation SMC parallelised scheme for my epidemiological models.
-% This algorithm applies my adapted SMC for a single model.
+%%%%%%%%%%%%%%%%%%%%%%%%McKendrick et al%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Approximate Bayesian Computation SMC parallelised scheme for epidemiological models.
+% This algorithm applies an adapted SMC for a single model.
 % This is a modified version of the SMC where the tolerances are generated as a preset
 % quantile of the previous generation's errors. It produces posterior distributions.
 % This function takes the inputs of number of particles, maximum number of
@@ -14,9 +14,8 @@ function [All_gen_results_cell,Total_iterations,tolVec,seed] = Algorithm_AQ_SMC_
 % rng seed used, the total number of parameter samples and the results.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%INPUTS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Priors_given_m: The priors of the tested parameters for each model (Table)
-% Input: The inputs for each of the functions, needs to be in the same order for 
-% the functions in Models (Cell, table entries which have their first entry as 
-% the inputs of the distribution, second entry is the distribution name)
+% Input: The inputs for each the function. Needs to be in the same order as seen in the input for that model
+% as this is later converted to a cell (Table)
 % Data: The data, with time in days (Array)
 % K: The multiple of M of parameter samples we will from the priors for the first generation,
 % accepting the best 1/K of these to be recorded (Int64)
@@ -24,7 +23,7 @@ function [All_gen_results_cell,Total_iterations,tolVec,seed] = Algorithm_AQ_SMC_
 % be used is the best 1/Quantile of the previous generation's tolerances (Float64)
 % T: The number of total generations the SMC will run (Int64)
 % error_method: How the error is calculated, one row for each model. 
-% (Cell, first entry the metric, second a cell of model compartments to be used)
+% (Cell, first entry is the metric, second a cell of model compartments to be used)
 % M: Total number of particles generated (int64)
 % MaxIter: Maximum number of parameters sampled before running too long (int64)
 % Pkernel: How the perturbation kernel works. A cell of the method and whatever
@@ -70,8 +69,7 @@ PKernel_matrix = cell(1,T); % In this current formulation, the covariance of
 % supported currently
 
 Max_params = width(Priors_given_m); % Find the maximum number of parameters tested for a model
-p_set_dim = zeros(1,Max_params+1); 
-% The number of parameters per named parameter that will be tested for each model
+p_set_dim = zeros(1,Max_params+1); % The number of parameters per named parameter that will be tested for each model
 
 % Set up the weightings which will be used to sample particles from the
 % previous generation for that model

@@ -1,4 +1,4 @@
-function Output_Cell = Model_rat_SIR_Freq(input)
+function Output_Cell = ModelVector_SIR(input)
 
 if nargin == 0
 % parameters
@@ -80,11 +80,10 @@ if S0+I0>N0
 end
 
 
-S=S0; I=I0; R=N0-S-I;
 %n = ceil(MaxTime/365);
 % The main iteration 
 options = odeset('AbsTol', 1e-5);
-[t, pop]=ode23(@Diff_2_2,0:1:MaxTime,[S I R],options,[k s phi beta gamma mu]);
+[t, pop]=ode23(@Diff_2_2,0:1:MaxTime,[S0 I0 R0],options,[k s phi beta gamma mu]);
 
 
 S = pop(:,1); I=pop(:,2); R=pop(:,3); 

@@ -1,12 +1,12 @@
 function [All_gen_results_cell,Total_iterations,seed] = Algorithm_ABCSMC_P_epi...
     (tolVec,MaxIter,M,model,Input,Priors_given_m,data,error_method,PKernel,save_name)
-%%%%%%%%%%%%%%%%%%%%%%%%JimmyMcKendrick%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Approximate Bayesian Computation SMC parallelised scheme for my epidemiological models.
+%%%%%%%%%%%%%%%%%%%%%%%%McKendrick et al%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Approximate Bayesian Computation SMC parallelised scheme for epidemiological models.
 % This algorithm applies my adapted SMC for a single model.
-% This is a modified version of the SMC where the tolerances are generated as a preset
-% quantile of the previous generation's errors. It produces posterior distributions.
+% This is the SMC version from Toni et al 2009 where the posterior converges interatively with
+% a sequence of tolerances. It produces posterior distributions.
 % This function takes the inputs of number of particles, maximum number of
-% iterations, the inputs of each model, and of them which parameters are to be fitted,
+% iterations, the inputs for the model, and of them which parameters are to be fitted,
 % along with the data and error calculaton method.
 % This will essentially use the rejection scheme for the first generation
 % and then subsequent generations will be created by perturbing the
@@ -18,14 +18,9 @@ function [All_gen_results_cell,Total_iterations,seed] = Algorithm_ABCSMC_P_epi..
 % the functions in Models (Cell, table entries which have their first entry as 
 % the inputs of the distribution, second entry is the distribution name)
 % Data: The data, with time in days (Array)
-% K: The multiple of M of parameter samples we will from the priors for the first generation,
-% accepting the best 1/K of these to be recorded (Int64)
-% Quantile: For every generation after the first, the tolerance that will
-% be used is the best 1/Quantile of the previous generation's tolerances (Float64)
-% T: The number of total generations the SMC will run (Int64)
-% error_method: How the error is calculated, one row for each model. 
-% (Cell, first entry the metric, second a cell of model compartments to be used)
+% tolVec: The decreasing sequence of tolerances used for each generation (Array)
 % M: Total number of particles generated (int64)
+% model: The function handle for the model being fitted (Function handle)
 % MaxIter: Maximum number of parameters sampled before running too long (int64)
 % Pkernel: How the perturbation kernel works. A cell of the method and whatever
 % is needed, such as a matrix variance for a multivariate Gauss dist. (Cell,string) 

@@ -2,10 +2,10 @@ function resp = AlgorithmModule(str_function, cell_args)
 % This function is a python-like module, containing sub functions of the
 % Approximate Bayesian Computation algorithms that we have for fitting
 % epidemiological models.
-allowed_functions = {'SampleFromPrior','SampleFromLastGen','Error','WeightCalc',...
-    'PerturbationKernMatrix','Unpack','SquareDiff','qt_adaptive';
-                     @SampleFromPrior,@SampleFromLastGen,@Error,@WeightCalc,...
-    @PerturbationKernMatrix,@Unpack,@SquareDiff,@qt_adaptive};
+allowed_functions = {'SampleFromPrior','SampleFromPrior_Adaptive','SampleFromLastGen',...
+    'Error','WeightCalc','PerturbationKernMatrix','Unpack','SquareDiff';
+                     @SampleFromPrior,@SampleFromPrior_Adaptive,@SampleFromLastGen,...
+                     @Error,@WeightCalc, @PerturbationKernMatrix,@Unpack,@SquareDiff};
 
 [found, where] = ismember(str_function, allowed_functions(1, :));  
 if ~found
@@ -58,7 +58,7 @@ Prop_prm = table(NaN(1,p_set_dim(1)));
 Prop_input = Input;
 
 Off_set_dists = {'Gamma','Logistic'};
-SampleFromPrior_Adaptive
+
 Param_Ind = 0;
 count = 0;
 if strcmp(PKernel_type,"covarianceMVN") || strcmp(PKernel_type,"MVN")
