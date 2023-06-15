@@ -1,9 +1,11 @@
 %%                           Single model Graph production
-addpath('/home/jmckendrick/Documents/MA931/Matlab')
-addpath('/home/jmckendrick/Documents/LHF-work/GraphnStatsScripts')
-%%
-addpath('G:\Uni\PhD\LHF-work\GraphnStatsScripts')
-addpath('G:\Uni\PhD\MA931\Matlab')
+% A script run in sections that will produce the plots as seen in 
+
+mydir  = pwd;
+idcs   = strfind(mydir,filesep);    
+upperdir = mydir(1:idcs(end-1)-1); 
+addpath(strcat(upperdir,'/Fits_Models'))
+addpath(strcat(upperdir,'/GraphScripts'))
 %%
 % Load results file
 clear
