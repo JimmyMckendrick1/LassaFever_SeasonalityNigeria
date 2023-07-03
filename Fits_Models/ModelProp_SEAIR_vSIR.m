@@ -1,6 +1,6 @@
-function  Output_Cell = ModelProp_SEAIR_vSIR_pg_f(input)
+function  Output_Cell = ModelProp_SEAIR_vSIR(input)
 % function to see the proportions of humans that are infected by other
-% humans and those that were infected by rats when running Model_SEAIR_vSIR_pg_f
+% humans and those that were infected by rats when running Model_SEAIR_vSIR
 if nargin == 0
 % parameters
     % Rats 
@@ -22,27 +22,29 @@ if nargin == 0
 end
 
 [s,phi,beta_rr,gamma_r,mu_r,N_r_0,I_r_0,B_h,...
-    beta_hh,sigma,beta_rh,p,nu,gamma_h,mu_h_I,mu_h,...
-    N_h_0,S_h_0,E_hr_0,A_h_0,I_hr_0,C_hr_0,D_h_0,MaxTime,C_hh_0,E_hh_0,I_hh_0]=deal(input{:});
+        beta_hh,sigma,beta_rh,p,nu,gamma_h,mu_h_I,mu_h,N_h_0,S_h_0,E_hh_0,E_hr_0,...
+        A_h_0,I_hh_0,I_hr_0,C_hh_0,C_hr_0,D_h_0,MaxTime]=deal(input{:});
 
 k = mu_r/PeriodicGaussian_normalisation(s/2);
 R_rr = beta_rr/(gamma_r+mu_r);
 
 
-if isequal(N_r_0,1)
-    S_r_0 = max(min(N_r_0/R_rr,N_r_0-1e-4),0);       
-else
-    S_r_0 = max(min(N_r_0/R_rr,N_r_0-1),0);    
-end
-
+fN = N_r_0;
 
 if isnan(I_r_0)
-    if isequal(N_r_0,1)   
+    if isequal(N_r_0,1) 
+        S_r_0 = max(min(fN/R_rr,N_r_0-1e-4),0); 
         I_r_0 = min(N_r_0-S_r_0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1e-4));
     else   
+        S_r_0 = max(min(fN/R_rr,N_r_0-1),0);  
         I_r_0 = min(N_r_0-S_r_0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1));
-    end
+    end    
+else
+    S_r_0 = max(min(fN/R_rr,N_r_0-I_r_0),0);    
 end
+R_r_0 = N_r_0-S_r_0-I_r_0;
+R_h_0 = N_h_0-S_h_0-E_hh_0-E_hr_0-A_h_0-I_hh_0-I_hr_0;
+
 
 % Checks all the parameters are valid
 if S_r_0<=0 
@@ -77,19 +79,14 @@ if S_r_0+I_r_0>N_r_0
     warning('Initial level of susceptibles+exposed+infecteds (%g+%g+%g=%g) is greater than total population',S_r_0,I_r_0,N_r_0);
 end
 
-
-S_r=S_r_0; I_r=I_r_0; R_r=N_r_0-S_r-I_r;
-S_h = S_h_0; E_h_r = E_hr_0; E_h_h = E_hh_0; A_h = A_h_0;
-I_hr=I_hr_0; I_hh=I_hh_0; R_h=N_h_0-S_h-E_h_r-A_h-I_hh;
-C_h_r = C_hr_0; C_h_h = C_hh_0; D_h = D_h_0; 
 % The main iteration 
 options = odeset('AbsTol', 1e-5);
 input_vec = [k s phi beta_rr gamma_r mu_r B_h beta_hh sigma beta_rh p nu gamma_h mu_h_I mu_h];
-[t, pop]=ode45(@Diff_2_2,[0:MaxTime],[S_r I_r R_r S_h E_h_r E_h_h A_h I_hr I_hh R_h C_h_r C_h_h D_h],...
+[t, pop]=ode45(@Diff_2_2,[0:MaxTime],[S_r_0 I_r_0 R_r_0 S_h_0 E_hr_0 E_hh_0 A_h_0 I_hr_0 I_hh_0 R_h_0 C_hr_0 C_hh_0 D_h_0],...
     options,input_vec);
 
-[S_r,I_r,R_r,S_h,E_h_r,E_h_h,A_h,I_hr,I_hh,R_h,C_h_r,C_h_h,D_h]=matsplit(pop,1);
-Output_Cell = table(t,S_r,I_r,R_r,S_h,E_h_r,E_h_h,A_h,I_hr,I_hh,R_h,C_h_r,C_h_h,D_h );
+[S_r,I_r,R_r,S_h,E_h_r,E_h_h,A_h,I_hr,I_hh,R_h,C_hr,C_hh,D_h]=matsplit(pop,1);
+Output_Cell = table(t,S_r,I_r,R_r,S_h,E_h_r,E_h_h,A_h,I_hr,I_hh,R_h,C_hr,C_hh,D_h );
 
 %{
 figure
@@ -97,27 +94,13 @@ t = Output_Cell{1,1};
 plot(t,S_r,t,I_r,t,R_r)
 title("Rat dynamics")
 legend("Susceptible","Infected","Recovered",'Location','Best')
-
-figure
-plot(t,S_h,t,E_h_h+E_h_r,t,I_h,t,R_h)
-title("Human dynamics")
-subplot(3,1,1)
-plot(t,I_h)
-legend("Infected")
-subplot(3,1,2)
-plot(t,S_h)
-legend("Susceptible")
-subplot(3,1,3)
-plot(t,R_h)
-legend("Recovered")
-legend("Susceptible","Exposed","Asymptamatics","Infected","Recovered",'Location','Best')
 %}
-    %{
+%{
 figure
-plot(t,E_h_h,t,E_h_r)
+plot(t,E_hh,t,E_hr)
 legend('human-to-human','rat-to-human')
 figure
-plot(t,C_h_h,t,C_h_r)
+plot(t,C_hh,t,C_hr)
 legend('human-to-human','rat-to-human')
 %}
 end
@@ -131,23 +114,23 @@ B = k*exp(-s*cos(pi*(t/365-phi))^2);
 S_r=pop(1); I_r=pop(2); R_r=pop(3);
 N_r=S_r+I_r+R_r;
 
-S_h=pop(4); E_h_r=pop(5); E_h_h=pop(6); A_h=pop(7); I_h_r=pop(8);
-I_h_h = pop(9); R_h=pop(10);
-N_h = S_h+E_h_r+E_h_h+A_h+I_h_r+I_h_h+R_h;
+S_h=pop(4); E_hr=pop(5); E_hh=pop(6); A_h=pop(7); I_hr=pop(8);
+I_hh = pop(9); R_h=pop(10);
+N_h = S_h+E_hr+E_hh+A_h+I_hr+I_hh+R_h;
 dPop=zeros(13,1);
 
 dPop(1)= B*N_r - beta_rr*S_r*I_r/N_r - mu_r*S_r; %S_r
 dPop(2)= beta_rr*S_r*I_r/N_r - gamma_r*I_r - mu_r*I_r; %I_r
 dPop(3)= gamma_r*I_r - mu_r*R_r; %R_r
 
-dPop(4) = B_h*N_h - (beta_rh*I_r + beta_hh*(sigma*A_h+I_h_r+I_h_h))*S_h/N_h - mu_h*S_h; %S_h
-dPop(5) = (beta_rh*I_r )*S_h/N_h - (nu+mu_h)*E_h_r; %E_h_r
-dPop(6) = beta_hh*(sigma*A_h+I_h_r+I_h_h)*S_h/N_h - (nu+mu_h)*E_h_h; %E_h_h 
-dPop(7) = p*nu*(E_h_r+E_h_h) - (gamma_h+mu_h)*A_h; %A_h
-dPop(8) = (1-p)*nu*(E_h_r) - (gamma_h+mu_h_I+mu_h)*I_h_r; %I_h_r
-dPop(9) = (1-p)*nu*(E_h_h) - (gamma_h+mu_h_I+mu_h)*I_h_h; %I_h_h
-dPop(10) = gamma_h*(A_h+I_h_r +I_h_h) - mu_h*R_h; %R_h
-dPop(11) = (1-p)*nu*E_h_r; %C_h_r
-dPop(12) = (1-p)*nu*E_h_h; %C_h_h
-dPop(13) = mu_h_I*(I_h_r+I_h_h); %D_h
+dPop(4) = B_h*N_h - (beta_rh*I_r + beta_hh*(sigma*A_h+I_hr+I_hh))*S_h/N_h - mu_h*S_h; %S_h
+dPop(5) = (beta_rh*I_r )*S_h/N_h - (nu+mu_h)*E_hr; %E_hr humans infected by rats, incubation
+dPop(6) = beta_hh*(sigma*A_h+I_hr+I_hh)*S_h/N_h - (nu+mu_h)*E_hh; %E_hh humans infected by humans, incubation
+dPop(7) = p*nu*(E_hr+E_hh) - (gamma_h+mu_h)*A_h; %A_h
+dPop(8) = (1-p)*nu*(E_hr) - (gamma_h+mu_h_I+mu_h)*I_hr; %I_hr humans infected by rats, infectious
+dPop(9) = (1-p)*nu*(E_hh) - (gamma_h+mu_h_I+mu_h)*I_hh; %I_hh humans infected by humans, infectious
+dPop(10) = gamma_h*(A_h+I_hr +I_hh) - mu_h*R_h; %R_h
+dPop(11) = (1-p)*nu*E_hr; %C_h_r
+dPop(12) = (1-p)*nu*E_hh; %C_h_h
+dPop(13) = mu_h_I*(I_hr+I_hh); %D_h
 end

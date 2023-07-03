@@ -6,8 +6,7 @@ if nargin == 0
     phi = 0.479210428417469;%0.499156424319793;
     beta=0.1;%1.782978817928539;%1.831043660491785;
     gamma=1/90;  mu=1/500; 
-    N0=1e6; S0=N0*(gamma+mu)/beta;  
-    MaxTime=900;
+    N0=1e6; MaxTime=900;
     I0=NaN;
     input = {s,phi,beta,gamma,mu,N0,I0,MaxTime};
 end
@@ -22,21 +21,19 @@ end
 k = mu/PeriodicGaussian_normalisation(s/2);
 R_rr = beta/(gamma+mu);
 
-
-if isequal(N0,1)
-    S0 = max(min(N0/R_rr,N0-1e-4),0);       
-else
-    S0 = max(min(N0/R_rr,N0-1),0);
-end
+fN = N_r_0;
 
 if isnan(I0)
-    if isequal(N0,1)   
-        I0 = min(N0-S0,max(N0*mu*(R_rr-1)/beta,1e-4));
-    else
-        I0 = min(N0-S0,max(N0*mu*(R_rr-1)/beta,1));
-    end
+    if isequal(N_r_0,1) 
+        S0 = max(min(fN/R_rr,N_r_0-1e-4),0); 
+        I0 = min(N_r_0-S0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1e-4));
+    else   
+        S0 = max(min(fN/R_rr,N_r_0-1),0);  
+        I0 = min(N_r_0-S0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1));
+    end    
+else
+    S0 = max(min(fN/R_rr,N_r_0-I0),0);    
 end
-
 % Checks all the parameters are valid
 if S0<=0 
     error('Initial level of susceptibles (%g) is less than or equal to zero',S0);

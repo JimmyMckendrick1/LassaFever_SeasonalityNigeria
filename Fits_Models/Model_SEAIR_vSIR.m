@@ -1,14 +1,12 @@
 function  Output_T = Model_SEAIR_vSIR(input)
-
+% Main model defined in Modelling seasonality in Lassa fever in Nigeria
 if nargin == 0
 % parameters
     % Rats
-    s = 1105.90318393293;  mu_r=1/500; beta_rr=18.0399391317874;%0.30830836377397;
-    gamma_r=1/90; phi = 0.438661320162671;
-    N_r_0=10^6; I_r_0=NaN; 
+    s = 1105.90318393293;  mu_r=1/500; 
+    gamma_r=1/90; N_r_0=10^6; I_r_0=NaN; 
     % Humans
-    B_h = 1/(53.5*365)+1e-4; beta_hh = 0.000106113392996808; 
-    beta_rh = 6.27209803061645e-05;
+    B_h = 1/(53.5*365)+1e-4; 
     p = 0.8; nu = 1/14; gamma_h = 1/14; mu_h_I = 0.017857142857143; 
     mu_h = 1/(53.5*365); sigma = 1;
     N_h_0 = 2e8; S_h_0 = 199999960; E_h_0 = 30; A_h_0 = 8; I_h_0 = 2; 
@@ -44,6 +42,8 @@ if isnan(I_r_0)
 else
     S_r_0 = max(min(fN/R_rr,N_r_0-I_r_0),0);    
 end
+R_r_0 = N_r_0-S_r_0-I_r_0;
+R_h_0 = N_h_0-S_h_0-E_h_0-A_h_0-I_h_0;
 
 % Checks all the parameters are valid
 if S_r_0<=0 
@@ -85,7 +85,9 @@ input_vec = [k s phi beta_rr gamma_r mu_r B_h beta_hh sigma beta_rh p nu gamma_h
 
 
 
-[S_r,I_r,R_r,S_h,E_h,A_h,I_h,R_h,C_h,D_h]=matsplit(pop,1);
+
+A_cell = num2cell(pop,1);
+[S_r,I_r,R_r,S_h,E_h,A_h,I_h,R_h,C_h,D_h] = A_cell{:};
 Output_T = table(t,S_r,I_r,R_r,S_h,E_h,A_h,I_h,R_h,C_h,D_h);
 %{
 
