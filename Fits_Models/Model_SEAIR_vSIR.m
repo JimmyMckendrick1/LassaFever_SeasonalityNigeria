@@ -1,22 +1,56 @@
 function  Output_T = Model_SEAIR_vSIR(input)
-% Main model defined in Modelling seasonality in Lassa fever in Nigeria
+% Main model developed in Modelling seasonality in Lassa fever in Nigeria.
+% It is titled following the convention of <human system>_v<vector system>,
+% which is an susceptible-exposed-asymptomatic/infectious-recovered model
+% for humans and an susceptible-infectious-recovered model for the vector,
+% Mastomys natalensis.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function input: input is a cell containing the following ordered parameters:
+% s: Shape parameter for the vector birth/recruitment function 
+% phi: Time at which the rate of reproduction is at its minimum (0<=phi<=1)
+% beta_rr: Transmission rate, rat-to-rats
+% gamma_r: Recovery rate of rats
+% mu_r: Natural mortality rate of rats
+% N_r_0: Initial number of total rats
+% I_r_0: Initial number of infected rats, if left as NaN then this is
+% calculated
+% B_h: Rate of births for humans
+% beta_hh: Transmission rate, human-to-human
+% sigma: Relative transmission rate ratio of asymptomatic humans (A_h) to
+% symptomatic humans (I_h). Left as 1 for paper
+% beta_rh: Transmission rate, rat-to-humans
+% p: Proportion of humans that are asymptomatic
+% nu: Rate of progression of humans from exposed to an infectious compartment
+% gamma_h: Recovery rate of humans
+% mu_h_I: Infection induced mortality rate for humans 
+% mu_h: Natural mortality rate for humans
+% N_h_0: Initial number of total humans
+% S_h_0: Initial number of susceptible humans
+% E_h_0: Initial number of exposed humans
+% A_h_0: Initial number of asymptomatic humans
+% I_h_0: Initial number of infected humans
+% C_h_0: Initial number of cases
+% D_h_0: Initial number of deaths
+% MaxTime: Time that the model will run to in days
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function output:
+% Output_T:
 if nargin == 0
 % parameters
-    % Rats
-    s = 1105.90318393293;  mu_r=1/500; 
+    % Rats    
+    s =100;
+    beta_rr = 4;
+    beta_rh = 0.0003;
+    phi = 0.4;  mu_r=1/500; 
     gamma_r=1/90; N_r_0=10^6; I_r_0=NaN; 
     % Humans
-    B_h = 1/(53.5*365)+1e-4; 
-    p = 0.8; nu = 1/14; gamma_h = 1/14; mu_h_I = 0.017857142857143; 
-    mu_h = 1/(53.5*365); sigma = 1;
+    B_h = 1/(53.5*365)+1e-4;  
+    beta_hh = 0.01;
+    p = 0.8; nu = 1/14; gamma_h = 1/14; mu_h_I = 0.018; 
+    mu_h = 1/(53.5*365); sigma = 1; 
     N_h_0 = 2e8; S_h_0 = 199999960; E_h_0 = 30; A_h_0 = 8; I_h_0 = 2; 
     C_h_0 = 2; D_h_0 = 0;
     MaxTime=917;
-    s =31.2437999646218;
-    beta_rr = 4.18653227717189;
-    beta_hh = 0.0147131268850148;
-    beta_rh = 0.000367378880121168;
-    phi = 0.679520808465325;
     input = {s,phi,beta_rr,gamma_r,mu_r,N_r_0,I_r_0,B_h,...
         beta_hh,sigma,beta_rh,p,nu,gamma_h,mu_h_I,mu_h,N_h_0,...
         S_h_0,E_h_0,A_h_0,I_h_0,C_h_0,D_h_0,MaxTime};

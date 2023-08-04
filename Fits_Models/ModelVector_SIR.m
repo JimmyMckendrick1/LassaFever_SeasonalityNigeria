@@ -1,5 +1,5 @@
 function Output_Cell = ModelVector_SIR(input)
-
+% Function for modelling only the vector side of the model
 if nargin == 0
 % parameters
     s = 10;%18.583901319727340;

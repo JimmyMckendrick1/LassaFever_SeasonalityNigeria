@@ -1,6 +1,8 @@
 function  Output_Cell = ModelProp_SEAIR_vSIR(input)
-% function to see the proportions of humans that are infected by other
+% Function to see the proportions of humans that are infected by other
 % humans and those that were infected by rats when running Model_SEAIR_vSIR
+% This function takes additional inputs compared to Modle_SEAIR_vSIR as it
+% differentiates between humans infected by rats and those by humans.
 if nargin == 0
 % parameters
     % Rats 
