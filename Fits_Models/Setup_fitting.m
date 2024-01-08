@@ -1,9 +1,9 @@
 mydir  = pwd;
 idcs   = strfind(mydir,filesep);
 newdir = mydir(1:idcs(end)-1); 
-load(strcat(newdir,'/Inputs/FivePrm18_20.mat')) % Load an input file
+load(strcat(newdir,'/Inputs/Manuscript_input.mat')) % Load an input file
 Folderdir = strcat(newdir,'/Results/'); % Save location
-FileName = 'FivePrm18_20_%d'; % Save name
+FileName = 'Manuscript_input_res_%d'; % Save name
 
 sv_file = strcat(Folderdir,FileName);
 

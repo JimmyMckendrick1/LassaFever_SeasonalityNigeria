@@ -6,43 +6,57 @@ function  Output_Cell = ModelProp_SEAIR_vSIR(input)
 if nargin == 0
 % parameters
     % Rats 
-    s = 989.716296086384;  mu_r=1/500; beta_rr=1.90909122362604;
-    gamma_r=1/90; phi = 0.479938650962018;
-    N_r_0=1e5; I_r_0=0.5*N_r_0; 
+    s =100;
+    beta_rr = 4;
+    beta_rh = 11;
+    phi = 0.4;  mu_r=0.0038; 
+    gamma_r=1/90; N_r_0=1; S_r_0 = NaN; I_r_0=NaN; 
     % Humans
-    B_h = 1/(53.5*365)+1e-4; beta_hh = 0.00130994248902666; sigma=1;
-    beta_rh = 0.00746899555324877;
-    p = 0.8; nu = 1/14; gamma_h = 1/14; mu_h_I = 0.017857142857143; 
-    mu_h = 1/(53.5*365);
-    N_h_0 = 1e6; S_h_0 = 1e5; E_hh_0 = 10; E_hr_0 = 0;
-    A_h_0 = 20; I_hr_0 = 0; I_hh_0 = 2; 
-    C_hh_0 = 0; C_hr_0 = 2; D_h_0 = 0;
-    MaxTime=576;
-    input = {s,phi,beta_rr,gamma_r,mu_r,N_r_0,I_r_0,B_h,...
-        beta_hh,sigma,beta_rh,p,nu,gamma_h,mu_h_I,mu_h,N_h_0,S_h_0,E_hh_0,E_hr_0,...
-        A_h_0,I_hh_0,I_hr_0,C_hh_0,C_hr_0,D_h_0,MaxTime};
+    B_h = 1/(53.5*365)+1e-4;  
+    beta_hh = 0.01;
+    p = 0.8; nu = 1/14; gamma_h = 1/14; mu_h_I = 0.018; 
+    mu_h = 1/(53.5*365); sigma = 1; 
+    N_h_0 = 2e8; S_h_0 = 0.7*N_h_0; E_hh_0 = 30; E_hr_0 = 0; A_h_0 = 8; 
+    I_hh_0 = 2; I_hr_0 = 0; C_hh_0 = 2; C_hr_0 = 0; D_h_0 = 0;
+    d_start = 305/365; d_end = 90/365; d_mult = 2;
+    MaxTime=917;
+    input = {s,phi,beta_rr,gamma_r,mu_r,N_r_0,S_r_0,I_r_0,B_h,...
+    beta_hh,sigma,beta_rh,beta_hr,d_start,d_end,d_mult,p,nu,gamma_h,mu_h_I,mu_h,...
+    N_h_0,S_h_0,E_hh_0,A_h_0,I_hh_0,C_hh_0,D_h_0,MaxTime,E_hr_0,I_hr_0,C_hr_0};
 end
 
-[s,phi,beta_rr,gamma_r,mu_r,N_r_0,I_r_0,B_h,...
-        beta_hh,sigma,beta_rh,p,nu,gamma_h,mu_h_I,mu_h,N_h_0,S_h_0,E_hh_0,E_hr_0,...
-        A_h_0,I_hh_0,I_hr_0,C_hh_0,C_hr_0,D_h_0,MaxTime]=deal(input{:});
+[s,phi,beta_rr,gamma_r,mu_r,N_r_0,S_r_0,I_r_0,B_h,...
+    beta_hh,sigma,beta_rh,beta_hr,d_start,d_end,d_mult,p,nu,gamma_h,mu_h_I,mu_h,...
+    N_h_0,S_h_0,E_hh_0,A_h_0,I_hh_0,C_hh_0,D_h_0,MaxTime,E_hr_0,I_hr_0,C_hr_0]=deal(input{:});
 
 k = mu_r/PeriodicGaussian_normalisation(s/2);
-R_rr = beta_rr/(gamma_r+mu_r);
 
-
-fN = N_r_0;
-
-if isnan(I_r_0)
+if d_start > d_end
+    d_start = d_start-1;
+end
+if isnan(S_r_0)
+    R_rr = beta_rr/(gamma_r+mu_r);
+    Bt = k*exp(-s*cos(pi*(-phi))^2);
+    %Bt = mu_r;
+    if isnan(I_r_0)
+        if isequal(N_r_0,1) 
+            I_r_0 = min(N_r_0-1e-4,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1e-4));
+            S_r_0 = max(min(N_r_0/R_rr,N_r_0-I_r_0),0); 
+        else 
+            I_r_0 = min(N_r_0-1,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1));
+            S_r_0 = max(min(N_r_0/R_rr,N_r_0-I_r_0),0); 
+        end    
+    else
+        S_r_0 = max(min(N_r_0/R_rr,N_r_0-I_r_0),0);    
+    end
+elseif isnan(I_r_0)
+    R_rr = beta_rr/(gamma_r+mu_r); 
+    Bt = k*exp(-s*cos(pi*(-phi))^2);
     if isequal(N_r_0,1) 
-        S_r_0 = max(min(fN/R_rr,N_r_0-1e-4),0); 
-        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1e-4));
-    else   
-        S_r_0 = max(min(fN/R_rr,N_r_0-1),0);  
-        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1));
-    end    
-else
-    S_r_0 = max(min(fN/R_rr,N_r_0-I_r_0),0);    
+        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1e-4));
+    else 
+        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1));
+    end   
 end
 R_r_0 = N_r_0-S_r_0-I_r_0;
 R_h_0 = N_h_0-S_h_0-E_hh_0-E_hr_0-A_h_0-I_hh_0-I_hr_0;
@@ -83,11 +97,12 @@ end
 
 % The main iteration 
 options = odeset('AbsTol', 1e-5);
-input_vec = [k s phi beta_rr gamma_r mu_r B_h beta_hh sigma beta_rh p nu gamma_h mu_h_I mu_h];
+input_vec = [k s phi beta_rr gamma_r mu_r B_h beta_hh sigma beta_rh p nu gamma_h mu_h_I mu_h d_start d_end d_mult];
 [t, pop]=ode45(@Diff_2_2,[0:MaxTime],[S_r_0 I_r_0 R_r_0 S_h_0 E_hr_0 E_hh_0 A_h_0 I_hr_0 I_hh_0 R_h_0 C_hr_0 C_hh_0 D_h_0],...
     options,input_vec);
 
-[S_r,I_r,R_r,S_h,E_h_r,E_h_h,A_h,I_hr,I_hh,R_h,C_hr,C_hh,D_h]=matsplit(pop,1);
+A_cell = num2cell(pop,1);
+[S_r,I_r,R_r,S_h,E_h_r,E_h_h,A_h,I_hr,I_hh,R_h,C_hr,C_hh,D_h]=A_cell{:};
 Output_Cell = table(t,S_r,I_r,R_r,S_h,E_h_r,E_h_h,A_h,I_hr,I_hh,R_h,C_hr,C_hh,D_h );
 
 %{
@@ -109,7 +124,8 @@ end
 
 function dPop=Diff_2_2(t,pop, parameter)
 vart2 = num2cell(parameter);
-[k,s,phi,beta_rr, gamma_r, mu_r, B_h, beta_hh, sigma, beta_rh, p, nu, gamma_h,mu_h_I,mu_h] = deal(vart2{:});
+[k,s,phi,beta_rr, gamma_r, mu_r, B_h, beta_hh, sigma, beta_rh, p, nu,...
+    gamma_h,mu_h_I,mu_h,d_start, d_end, d_mult] = deal(vart2{:});
 
 
 B = k*exp(-s*cos(pi*(t/365-phi))^2);
@@ -119,7 +135,11 @@ N_r=S_r+I_r+R_r;
 S_h=pop(4); E_hr=pop(5); E_hh=pop(6); A_h=pop(7); I_hr=pop(8);
 I_hh = pop(9); R_h=pop(10);
 N_h = S_h+E_hr+E_hh+A_h+I_hr+I_hh+R_h;
+
 dPop=zeros(13,1);
+if (mod(t,365) > 365*(d_start) && mod(t,365) <= 365*(d_end)) || (mod(t,365) > 365*(d_start+1) && mod(t,365) <= 365*(d_end+1)) 
+    beta_rh = d_mult*beta_rh;
+end
 
 dPop(1)= B*N_r - beta_rr*S_r*I_r/N_r - mu_r*S_r; %S_r
 dPop(2)= beta_rr*S_r*I_r/N_r - gamma_r*I_r - mu_r*I_r; %I_r

@@ -7,12 +7,8 @@ upperdir = mydir(1:idcs(end)-1);
 addpath(strcat(upperdir,'/Fits_Models'))
 addpath(strcat(upperdir,'/GraphScripts'))
 %%
-% Load results file
-clear
-mydir  = pwd;
-idcs   = strfind(mydir,filesep);    
-newdir = mydir(1:idcs(end)-1); 
-load(strcat(newdir,'/Results/FivePrm18_20xN1I1_res.mat'))
+load(strcat(upperdir,'/Inputs/Manuscript_input.mat'))
+load(strcat(upperdir,'/Results/Manuscript_results.mat'))
 %% Finding important stuff for plotting before plots
 addpath(genpath([pwd,filesep,'matsplit']));
 T = length(All_gen_results_cell); % Last gen of the fit. Can look at previous
@@ -156,7 +152,7 @@ xlabel('Time (days)')
 
 %%                  Histograms
 
-title_char = {' Marginal posterior distributions','N_r(0) = 5\times 10^6, I_r(0) = 2.5\times 10^5'};
+title_char = {' Marginal posterior distributions'};
 tmp_input = Priors_given_m;
 cell_args = cell(1,4); 
 cell_args(1:4) = {All_gen_results_cell{T},Priors_given_m,...
@@ -169,27 +165,7 @@ else
     F = GraphModule('HistogramParameters',cell_args); 
 end
 
-set(gcf,'Position',[0 0 800 1000]) % Perhaps change the total size of the
-
-%%                    Two Histograms
-%%%%%% Outdated
-Params_data = {All_gen_results_cell{1,end},All_gen_results_cellO{1,end}};
-
-addpath(genpath([pwd,filesep,'matsplit']));
-
-%Legend_arr = ["Weekly","Cumulative","Prior"];
-Legend_arr = ["Edo","Ondo"];%["1","2","3"];
-title_char = {'5 parameter fit for Edo and Ondo:','Comparison of Marginal Posterior Distributions'};
-Starts = {convertStringsToChars(datestr(StartDate)),...
-    convertStringsToChars(datestr(StartWeekO))};
-
-cell_args = {Params_data,Legend_arr,Priors_given_m,...
-    Starts,title_char};
-
-F = GraphModule('HistogramParametersMulti',cell_args);
-set(gcf,'Position',[0 0 800 1000]) % Perhaps change the total size of the
-%figure incase things get smushed
-
+set(gcf,'Position',[0 0 1200 1000]) 
 %% Corrplot
 
 [R,PValue] = corrplot(All_gen_results_cell{1,T}.Variables);

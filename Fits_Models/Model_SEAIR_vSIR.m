@@ -19,6 +19,11 @@ function  Output_T = Model_SEAIR_vSIR(input)
 % sigma: Relative transmission rate ratio of asymptomatic humans (A_h) to
 % symptomatic humans (I_h). Left as 1 for paper
 % beta_rh: Transmission rate, rat-to-humans
+% d_start: Start of second period which has altered rat-to-human
+% transmission rates. (Between 0 and 1)
+% d_end: End of second period which has altered rat-to-human
+% transmission rates. (Between 0 and 1)
+% d_mult: Multiplier of rat-to-human transmission during said period ( >0)
 % p: Proportion of humans that are asymptomatic
 % nu: Rate of progression of humans from exposed to an infectious compartment
 % gamma_h: Recovery rate of humans
@@ -40,41 +45,56 @@ if nargin == 0
     % Rats    
     s =100;
     beta_rr = 4;
-    beta_rh = 0.0003;
-    phi = 0.4;  mu_r=1/500; 
-    gamma_r=1/90; N_r_0=10^6; I_r_0=NaN; 
+    beta_rh = 11; 
+    beta_hr = 0;
+    phi = 0.4;  mu_r=0.0038; 
+    gamma_r=1/90; N_r_0=1; S_r_0 = NaN; I_r_0=NaN; 
     % Humans
     B_h = 1/(53.5*365)+1e-4;  
     beta_hh = 0.01;
     p = 0.8; nu = 1/14; gamma_h = 1/14; mu_h_I = 0.018; 
     mu_h = 1/(53.5*365); sigma = 1; 
-    N_h_0 = 2e8; S_h_0 = 199999960; E_h_0 = 30; A_h_0 = 8; I_h_0 = 2; 
+    N_h_0 = 2e8; S_h_0 = 0.7*N_h_0; E_h_0 = 30; A_h_0 = 8; I_h_0 = 2; 
     C_h_0 = 2; D_h_0 = 0;
+    d_start = 305/365; d_end = 90/365; d_mult = 2;
     MaxTime=917;
-    input = {s,phi,beta_rr,gamma_r,mu_r,N_r_0,I_r_0,B_h,...
-        beta_hh,sigma,beta_rh,p,nu,gamma_h,mu_h_I,mu_h,N_h_0,...
-        S_h_0,E_h_0,A_h_0,I_h_0,C_h_0,D_h_0,MaxTime};
+    input = {s,phi,beta_rr,gamma_r,mu_r,N_r_0,S_r_0,I_r_0,B_h,...
+    beta_hh,sigma,beta_rh,beta_hr,d_start,d_end,d_mult,p,nu,gamma_h,mu_h_I,mu_h,...
+    N_h_0,S_h_0,E_h_0,A_h_0,I_h_0,C_h_0,D_h_0,MaxTime};
 end
 
-[s,phi,beta_rr,gamma_r,mu_r,N_r_0,I_r_0,B_h,...
-    beta_hh,sigma,beta_rh,p,nu,gamma_h,mu_h_I,mu_h,...
+[s,phi,beta_rr,gamma_r,mu_r,N_r_0,S_r_0,I_r_0,B_h,...
+    beta_hh,sigma,beta_rh,beta_hr,d_start,d_end,d_mult,p,nu,gamma_h,mu_h_I,mu_h,...
     N_h_0,S_h_0,E_h_0,A_h_0,I_h_0,C_h_0,D_h_0,MaxTime]=deal(input{:});
 
 k = mu_r/PeriodicGaussian_normalisation(s/2);
-R_rr = beta_rr/(gamma_r+mu_r);
 
-fN = N_r_0;
-
-if isnan(I_r_0)
+if d_start > d_end
+    d_start = d_start-1;
+end
+if isnan(S_r_0)
+    R_rr = beta_rr/(gamma_r+mu_r);
+    Bt = k*exp(-s*cos(pi*(-phi))^2);
+    %Bt = mu_r;
+    if isnan(I_r_0)
+        if isequal(N_r_0,1) 
+            I_r_0 = min(N_r_0-1e-4,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1e-4));
+            S_r_0 = max(min(N_r_0/R_rr,N_r_0-I_r_0),0); 
+        else 
+            I_r_0 = min(N_r_0-1,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1));
+            S_r_0 = max(min(N_r_0/R_rr,N_r_0-I_r_0),0); 
+        end    
+    else
+        S_r_0 = max(min(N_r_0/R_rr,N_r_0-I_r_0),0);    
+    end
+elseif isnan(I_r_0)
+    R_rr = beta_rr/(gamma_r+mu_r); 
+    Bt = k*exp(-s*cos(pi*(-phi))^2);
     if isequal(N_r_0,1) 
-        S_r_0 = max(min(fN/R_rr,N_r_0-1e-4),0); 
-        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1e-4));
-    else   
-        S_r_0 = max(min(fN/R_rr,N_r_0-1),0);  
-        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*mu_r*(R_rr-1)/beta_rr,1));
-    end    
-else
-    S_r_0 = max(min(fN/R_rr,N_r_0-I_r_0),0);    
+        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1e-4));
+    else 
+        I_r_0 = min(N_r_0-S_r_0,max(N_r_0*(R_rr*Bt-mu_r)/beta_rr,1));
+    end   
 end
 R_r_0 = N_r_0-S_r_0-I_r_0;
 R_h_0 = N_h_0-S_h_0-E_h_0-A_h_0-I_h_0;
@@ -113,8 +133,9 @@ if S_r_0+I_r_0>N_r_0
 end
 
 % The main iteration 
-options = odeset('AbsTol', 1e-5);
-input_vec = [k s phi beta_rr gamma_r mu_r B_h beta_hh sigma beta_rh p nu gamma_h mu_h_I mu_h];
+options = odeset('AbsTol', 1e-5,'NonNegative',1);
+input_vec = [k s phi beta_rr gamma_r mu_r B_h beta_hh sigma beta_rh  ...
+    p nu gamma_h mu_h_I mu_h d_start d_end d_mult];
 [t, pop]=ode45(@Diff_2_2,0:MaxTime,[S_r_0 I_r_0 R_r_0 S_h_0 E_h_0 A_h_0 I_h_0 R_h_0 C_h_0 D_h_0],options,input_vec);
 
 
@@ -162,9 +183,14 @@ end
 
 function dPop=Diff_2_2(t,pop, parameter)
 vart2 = num2cell(parameter);
-[k,s,phi,beta_rr, gamma_r, mu_r, B_h, beta_hh, sigma, beta_rh, p, nu, gamma_h,mu_h_I,mu_h] = deal(vart2{:});
+[k,s,phi,beta_rr, gamma_r, mu_r, B_h, beta_hh, sigma, beta_rh, ...
+    p, nu, gamma_h,mu_h_I,mu_h, d_start, d_end, d_mult] = deal(vart2{:});
 
 dPop=zeros(10,1);
+
+if (mod(t,365) > 365*(d_start) && mod(t,365) <= 365*(d_end)) || (mod(t,365) > 365*(d_start+1) && mod(t,365) <= 365*(d_end+1)) 
+    beta_rh = d_mult*beta_rh;
+end
 
 B = k*exp(-s*cos(pi*(t/365-phi))^2);
 S_r=pop(1); I_r=pop(2); R_r=pop(3);
